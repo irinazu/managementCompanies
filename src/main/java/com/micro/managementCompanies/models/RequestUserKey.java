@@ -14,4 +14,5 @@ public class RequestUserKey implements Serializable {
 
     @Column(name = "request_id")
     Long requestId;
+
 }

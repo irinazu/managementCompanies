@@ -31,4 +31,13 @@ public class Entrance {
     @OneToMany(mappedBy = "entrance")
     @Fetch(value= FetchMode.SELECT)
     Set<RepairWork> repairWorks;
+
+
+    @OneToOne
+    Chat chat;
+
+    /*@OneToOne(mappedBy = "entrance" ,cascade = CascadeType.ALL, orphanRemoval = true)
+    House_User house_user;*/
+
+
 }

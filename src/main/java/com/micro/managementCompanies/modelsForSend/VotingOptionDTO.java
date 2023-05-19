@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import java.util.List;
 import java.util.Set;
 
 @Component
@@ -19,6 +20,7 @@ public class VotingOptionDTO {
 
     private String option;
     private Long voteNumber;
+    private List<UserSystemDTO> userSystemDTOS;
 
     public void setArgs(VotingOption votingOption) {
         this.id = votingOption.getId();
@@ -26,6 +28,16 @@ public class VotingOptionDTO {
         this.voteNumber = votingOption.getVoteNumber();
     }
 
-    UserSystemDTO userSystemDTO;
     private Boolean answerCheck=false;
+
+    @Override
+    public String toString() {
+        return "VotingOptionDTO{" +
+                "id=" + id +
+                ", option='" + option + '\'' +
+                ", voteNumber=" + voteNumber +
+                ", userSystemDTOS=" + userSystemDTOS +
+                ", answerCheck=" + answerCheck +
+                '}';
+    }
 }

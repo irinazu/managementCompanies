@@ -14,4 +14,9 @@ public class HouseUserKey implements Serializable {
 
     @Column(name = "user_id")
     Long userId;
+
+    public void setArgs(Long houseId, Long userId) {
+        this.houseId = houseId;
+        this.userId = userId;
+    }
 }

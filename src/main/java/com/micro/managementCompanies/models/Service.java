@@ -20,7 +20,7 @@ public class Service {
     private String month;
     private Date dateOfConsumption;
     private Float dutyForThisMonth;
-    private Boolean repaid=true;
+    private Boolean repaid=false;
     private Float generalDutyForService=0F;
     private String unit;
     private Integer year;
@@ -33,4 +33,10 @@ public class Service {
 
     @ManyToOne
     ServiceDescription serviceDescription;
+
+    @ManyToOne
+    UserSystem user;
+
+    @ManyToOne
+    MeteringDevices meteringDevice;
 }

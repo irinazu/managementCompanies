@@ -13,5 +13,5 @@ import java.util.Optional;
 public interface PaymentsRepository extends CrudRepository<Service_User_Pay,Long> {
 
     //@Query("select sup from Service_User_Pay sup where sup.userSystem=:userSystem order by ")
-    List<Service_User_Pay> findAllByUserSystemOrderByDateDesc(UserSystem userSystem);
+    List<Service_User_Pay> findAllByUserSystemIdOrderByDateDesc(Long userId);
 }

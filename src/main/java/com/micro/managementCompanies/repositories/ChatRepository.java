@@ -1,6 +1,7 @@
 package com.micro.managementCompanies.repositories;
 
 import com.micro.managementCompanies.models.Chat;
+import com.micro.managementCompanies.models.Message;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 

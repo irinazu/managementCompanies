@@ -19,4 +19,10 @@ public class ProviderCompanyService {
         Long id=1L;
         return houseRepository.getAllByHouse(id);
     }
+
+    //более адекватная версия берем всех поставщиков услуг
+    public List<ProviderCompany> getProviderCompaniesForHouse(Long idHouse){
+        return houseRepository.getAllByHouse(idHouse);
+    }
+
 }

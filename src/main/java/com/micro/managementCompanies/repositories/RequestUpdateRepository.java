@@ -7,6 +7,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Repository
@@ -14,4 +15,7 @@ public interface RequestUpdateRepository extends CrudRepository<RequestUpdate,Lo
 
     @Query("select ru from RequestUpdate ru where ru.request.id=:idRequest")
     List<RequestUpdate> findByRequestId(Long idRequest);
+
+    Optional<RequestUpdate> findFirstByRequestIdOrderByIdDesc(Long idRequest);
+
 }

@@ -23,4 +23,12 @@ public class Request_User {
     @MapsId("requestId")
     @JsonIgnore
     Request request;
+
+
+    public void setArgs(RequestUserKey requestUserKey, UserSystem userSystem, Request request) {
+        this.requestUserKey = requestUserKey;
+        this.userSystem = userSystem;
+        this.request = request;
+    }
+
 }

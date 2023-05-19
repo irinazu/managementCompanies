@@ -11,4 +11,12 @@ import java.io.Serializable;
 public class ChatUserKey implements Serializable {
     Long chatId;
     Long userId;
+
+    public ChatUserKey(Long chatId, Long userId) {
+        this.chatId = chatId;
+        this.userId = userId;
+    }
+
+    public ChatUserKey() {
+    }
 }

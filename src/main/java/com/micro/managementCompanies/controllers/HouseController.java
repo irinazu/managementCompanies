@@ -1,10 +1,11 @@
 package com.micro.managementCompanies.controllers;
 
-import com.micro.managementCompanies.models.House;
-import com.micro.managementCompanies.models.RepairWork;
+import com.micro.managementCompanies.models.*;
 import com.micro.managementCompanies.modelsForSend.*;
 import com.micro.managementCompanies.services.HouseService;
+import com.micro.managementCompanies.services.ManagementCompanyService;
 import com.micro.managementCompanies.services.RepairWorkService;
+import com.micro.managementCompanies.services.UserService;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.MediaType;
@@ -16,20 +17,21 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @RestController
 @RequestMapping("/")
 public class HouseController {
     HouseService houseService;
     RepairWorkService repairWorkService;
+    UserService userService;
+    ManagementCompanyService managementCompanyService;
 
-    public HouseController(HouseService houseService, RepairWorkService repairWorkService) {
+    public HouseController(HouseService houseService, RepairWorkService repairWorkService, UserService userService, ManagementCompanyService managementCompanyService) {
         this.houseService = houseService;
         this.repairWorkService = repairWorkService;
+        this.userService = userService;
+        this.managementCompanyService = managementCompanyService;
     }
 
     @GetMapping("{region}/{town}/{street}/{house}")
@@ -356,4 +358,111 @@ public class HouseController {
         }
         return houseForSend;
     }*/
+
+    //дома для УК определенного работника
+    @GetMapping("getHousesForMC/{idUser}")
+    public List<HouseForSend> getHousesForMC(@PathVariable("idUser")Long idUser){
+        ManagementCompany managementCompany=userService.findUserById(idUser).getManagementCompany();
+        List<House> houses=managementCompany.getHouses();
+        List<HouseForSend> houseForSends=new ArrayList<>();
+        for (House house:houses) {
+            HouseForSend houseForSend=new HouseForSend();
+            houseForSend.setAllArgsOnHouse(house);
+            houseForSends.add(houseForSend);
+        }
+        return houseForSends;
+    }
+
+    //дома для УК по УК
+    @GetMapping("getHousesForMCByIdMC/{idMC}")
+    public List<HouseForSend> getHousesForMCByIdMC(@PathVariable("idMC") Long idMC){
+        ManagementCompany managementCompany=managementCompanyService.findManagementCompany(idMC);
+        List<House> houses=managementCompany.getHouses();
+        List<HouseForSend> houseForSends=new ArrayList<>();
+        for (House house:houses) {
+            HouseForSend houseForSend=new HouseForSend();
+            houseForSend.setAllArgsOnHouse(house);
+            houseForSends.add(houseForSend);
+        }
+        return houseForSends;
+    }
+
+    //юзеры для определенного дома
+    @GetMapping("getUsersForHouse/{houseId}")
+    public List<UserSystemDTO> getUsersForHouse(@PathVariable("houseId") Long houseId){
+        List<House_User> house_users=houseService.findAllHouse_User(houseId);
+        List<UserSystemDTO> userSystemDTOS=new ArrayList<>();
+
+        for (House_User house_user : house_users){
+            UserSystemDTO userSystemDTO=new UserSystemDTO();
+            userSystemDTO.setAllArgs(house_user.getUserSystem(),house_user.getNumberOfFlat());
+            userSystemDTOS.add(userSystemDTO);
+        }
+        return userSystemDTOS;
+    }
+
+    //определенный дом
+    @GetMapping("getHouse/{houseId}")
+    public HouseForSend getHouse(@PathVariable("houseId") Long houseId){
+        HouseForSend houseForSend=new HouseForSend();
+        houseForSend.setAllArgsOnHouse( houseService.findHouseById(houseId));
+        return houseForSend;
+    }
+
+    //добавляем дом
+    @PostMapping("addHouse/{idMC}")
+    public void addHouse(@PathVariable("idMC") Long idMC,
+                         @RequestBody HouseForSend houseForSend){
+        House house=new House();
+        house.setArgs(houseForSend);
+        house.setManagementCompany(managementCompanyService.findManagementCompany(idMC));
+        house=houseService.saveHouse(house);
+        for (int i=0;i<houseForSend.getNumberOfEntrance();i++){
+            Entrance entrance=new Entrance();
+            entrance.setNumberOfEntrance(i);
+            entrance.setHouse(house);
+            houseService.saveEntrance(entrance);
+        }
+    }
+
+    //обновляем дом //нет работы с подъездами
+    @PostMapping("reductionHouse")
+    public void reductionHouse(@RequestBody HouseForSend houseForSend){
+        House house=houseService.findHouseById(houseForSend.getId());
+        house.setArgs(houseForSend);
+        houseService.saveHouse(house);
+    }
+
+    //определенный дом
+    @GetMapping("getHouseForCertainUser/{userID}")
+    public HouseForSend getHouseForCertainUser(@PathVariable("userID") Long userID){
+        UserSystem userSystem=userService.findUserById(userID);
+        HouseForSend houseForSend=new HouseForSend();
+        houseForSend.setAllArgsOnHouse( userSystem.getHouse_userSet().get(0).getHouse());
+        return houseForSend;
+    }
+
+    //определенный House_User
+    @GetMapping("getHouseUserByUser/{userID}")
+    public House_UserDTO getHouseUserByUser(@PathVariable("userID") Long userID){
+       House_User house_user=userService.findUserById(userID).getHouse_userSet().get(0);
+       House_UserDTO houseUserDTO=new House_UserDTO();
+       houseUserDTO.setArgs(house_user);
+       return houseUserDTO;
+    }
+
+    @GetMapping("getEntranceForHouse/{houseId}")
+    public List<EntranceForSend> getEntranceForHouse(@PathVariable("houseId") Long houseId){
+        House house=houseService.findHouseById(houseId);
+        List<Entrance> entrances=houseService.getEntrances(house.getId());
+        List<EntranceForSend> entranceForSends=new ArrayList<>();
+
+        for (Entrance entrance:entrances) {
+            EntranceForSend entranceForSend=new EntranceForSend();
+            entranceForSend.setArgs(entrance);
+            entranceForSends.add(entranceForSend);
+        }
+        return entranceForSends;
+    }
+
 }

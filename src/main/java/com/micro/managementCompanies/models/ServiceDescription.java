@@ -18,6 +18,7 @@ public class ServiceDescription {
     private String title;
     private String imgUrl;
     private String counter;
+    private String unit;
 
 
     @OneToMany(mappedBy = "serviceDescription")
@@ -27,4 +28,7 @@ public class ServiceDescription {
     @OneToMany(mappedBy = "serviceDescriptionForProvider")
     @JsonIgnore
     Set<ProviderCompany> providerCompanySet;
+
+    @OneToOne
+    MeteringDevicesType meteringDevicesType;
 }

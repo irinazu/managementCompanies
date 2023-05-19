@@ -13,4 +13,6 @@ public interface MessageRepository extends CrudRepository<Message,Long> {
 
     @Override
     Optional<Message> findById(Long aLong);
+
+    public Optional<Message> findFirstByChatIdOrderByDateDesc(Long chatId);
 }

@@ -12,5 +12,7 @@ public interface UserSystemRepository extends JpaRepository<UserSystem, Long> {
     UserSystem findByName(String name);
     Optional<UserSystem> findById(Long id);
 
+    Optional<UserSystem> findByEmail(String email);
+
 
 }

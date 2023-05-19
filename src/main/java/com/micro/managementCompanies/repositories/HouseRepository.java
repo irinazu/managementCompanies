@@ -1,6 +1,7 @@
 package com.micro.managementCompanies.repositories;
 
 import com.micro.managementCompanies.models.House;
+import com.micro.managementCompanies.models.House_User;
 import com.micro.managementCompanies.models.ProviderCompany;
 import com.micro.managementCompanies.models.Voting;
 import org.springframework.data.jpa.repository.Query;
@@ -21,4 +22,7 @@ public interface HouseRepository extends CrudRepository<House,Long> {
 
     @Query("select pr.votes from House pr where pr.id=:id")
     List<Voting> getAllVoting(Long id);
+
+    @Query("select hu.house_userSet from House hu where hu.id=:id")
+    List<House_User> findAllHouse_User(Long id);
 }

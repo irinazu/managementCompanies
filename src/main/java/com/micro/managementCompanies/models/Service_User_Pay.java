@@ -23,6 +23,5 @@ public class Service_User_Pay {
     UserSystem userSystem;
 
     private Date date;
-    private Time time;
     private Float summa;
 }

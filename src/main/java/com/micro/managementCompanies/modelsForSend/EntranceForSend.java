@@ -1,5 +1,6 @@
 package com.micro.managementCompanies.modelsForSend;
 
+import com.micro.managementCompanies.models.Entrance;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
@@ -26,5 +27,8 @@ public class EntranceForSend implements PlaceInHouse{
         photoOfLift.add(imageModel);
     }
 
-
+    public void setArgs(Entrance entrance) {
+        this.id = entrance.getId();
+        this.numberOfEntrance = entrance.getNumberOfEntrance();
+    }
 }

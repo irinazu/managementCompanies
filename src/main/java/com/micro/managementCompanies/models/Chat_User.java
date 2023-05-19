@@ -22,4 +22,11 @@ public class Chat_User {
 
     private String message;
     private String file;
+
+    public void setArgs(ChatUserKey chatUserKey,Chat chat,UserSystem userSystem,Date date){
+        this.id=chatUserKey;
+        this.date=date;
+        this.userSystem=userSystem;
+        this.chat=chat;
+    }
 }

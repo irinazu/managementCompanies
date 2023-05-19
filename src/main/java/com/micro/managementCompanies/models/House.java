@@ -1,5 +1,6 @@
 package com.micro.managementCompanies.models;
 
+import com.micro.managementCompanies.modelsForSend.HouseForSend;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -36,16 +37,27 @@ public class House {
     private String adjoiningTerritory;
     private String photoOfBasement;
 
+    public void setArgs(HouseForSend houseForSend) {
+        this.region = houseForSend.getRegion();
+        this.town = houseForSend.getTown();
+        this.street = houseForSend.getStreet();
+        this.numberOfHouse = houseForSend.getNumberOfHouse();
+        this.numberOfEntrance = houseForSend.getNumberOfEntrance();
+        this.numberOfFloor = houseForSend.getNumberOfFloor();
+        this.yearOfConstruction = houseForSend.getYearOfConstruction();
+        this.numberOfFlats = houseForSend.getNumberOfFlats();
+    }
+
     @OneToMany(mappedBy = "house")
     @Fetch(value= FetchMode.SELECT)
-    Set<House_User> house_userSet;
+    List<House_User> house_userSet;
 
     @ManyToOne
     ManagementCompany managementCompany;
 
     @OneToMany(mappedBy = "house")
     @Fetch(value=FetchMode.SELECT)
-    Set<Entrance> entrances;
+    List<Entrance> entrances;
 
     @OneToMany(mappedBy = "house")
     @Fetch(value=FetchMode.SELECT)
@@ -59,4 +71,12 @@ public class House {
 
     @ManyToMany
     List<News> news;
+
+    @OneToOne
+    Chat chat;
+
+    public void addVoting(Voting voting) {
+        this.votes.add(voting);
+        voting.getHouses().add(this);
+    }
 }

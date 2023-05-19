@@ -1,5 +1,6 @@
 package com.micro.managementCompanies.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -14,6 +15,8 @@ public class Tag {
 
     private String title;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "tag")
     Set<Tag_News> tag_newsSet;
+
 }

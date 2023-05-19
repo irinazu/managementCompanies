@@ -25,8 +25,18 @@ public class VotingDTO {
     private String description;
     private Date start;
     private Boolean closed=false;
-    private String files;
     private Date endOfVoting;
+    private VotingThemeDTO votingThemeDTO=new VotingThemeDTO();
+    private List<UserSystemDTO> userSystemDTO=new ArrayList<>();
+    private Integer allMustAnswer;
+    private Integer answered;
+
+    List<VotingOptionDTO> votingOptionSet=new ArrayList<>();
+    List<HouseForSend> houses=new ArrayList<>();
+
+    List<VotingOptionDTO> deleteOptionsMustDeletingFromServer=new ArrayList<>();
+    List<HouseForSend> housesMustAdding=new ArrayList<>();
+    List<HouseForSend> housesMustDeleting=new ArrayList<>();
 
     public void setArgs(Voting voting) {
         this.id = voting.getId();
@@ -35,8 +45,8 @@ public class VotingDTO {
         this.description = voting.getDescription();
         this.start = voting.getStart();
         this.closed = voting.getClosed();
-        this.files = voting.getFiles();
         this.endOfVoting = voting.getEndOfVoting();
+        votingThemeDTO.setArgs(voting.getVotingTheme());
     }
 
     public void addInVotingOptionSet(VotingOptionDTO votingOptionDTO){
@@ -46,6 +56,4 @@ public class VotingDTO {
         houses.add(houseForSend);
     }
 
-    List<VotingOptionDTO> votingOptionSet=new ArrayList<>();
-    List<HouseForSend> houses=new ArrayList<>();
 }

@@ -18,9 +18,8 @@ public class PaymentService {
         this.userSystemRepository = userSystemRepository;
     }
 
-    public List<Service_User_Pay> getPaymentForUser(){
-        UserSystem userSystem=userSystemRepository.findByName("user1");
-        return paymentsRepository.findAllByUserSystemOrderByDateDesc(userSystem);
+    public List<Service_User_Pay> getPaymentForUser(Long userId){
+        return paymentsRepository.findAllByUserSystemIdOrderByDateDesc(userId);
     }
 
 }

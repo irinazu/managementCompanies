@@ -30,6 +30,7 @@ public class ChatController {
         return getImgForCertainChat(chatService.findById(id));
     }
 
+    //все чаты для определенного user
     @GetMapping("getAllChatForUser/{id}")
     public List<ChatDTO> getAllChatForUser(@PathVariable("id") Long id) throws IOException {
         List<ChatDTO> chatDTOS=new ArrayList<>();
@@ -39,6 +40,18 @@ public class ChatController {
             chatDTOS.add(chatDTO);
         }
         return chatDTOS;
+    }
+
+    //все чаты для определенного user
+    @GetMapping("getLastMessageForChat/{chatId}")
+    public MessageDTO getLastMessageForChat(@PathVariable("chatId") Long chatId){
+        Message message=chatService.getLastMessageForChat(chatId);
+        if(message!=null){
+            MessageDTO messageDTO=new MessageDTO();
+            messageDTO.setArgs(message);
+            return messageDTO;
+        }
+        return null;
     }
 
     @PostMapping(value = "loadImgOfChatOnServer/{id}",consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
@@ -86,7 +99,9 @@ public class ChatController {
             }
 
             try {
-                imageModels.add(getImg(userSystem.getName()+"/"+id1+file.getOriginalFilename()));
+                ImageModel imageModel=getImg(userSystem.getName()+"/"+id1+file.getOriginalFilename());
+                imageModel.setId(nestedFile.getId());
+                imageModels.add(imageModel);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -94,6 +109,7 @@ public class ChatController {
         return imageModels;
     }
 
+    //посылаем сообщение, без картинок
     @PostMapping("sendNewMessage")
     public Long getAllChatForUser(@RequestBody MessageDTO message){
         Message forSave=new Message(message.getContent(),new Date(),
@@ -124,7 +140,7 @@ public class ChatController {
 
     @PostMapping("updateMessage/{idOfMessage}")
     public void updateMessage(@PathVariable("idOfMessage") Long idOfMessage,
-                                  @RequestBody MessageDTO message){
+                              @RequestBody MessageDTO message){
         Message forUpdate=chatService.findByIdMessage(idOfMessage);
         forUpdate.setContent(message.getContent());
         if(message.getListImgInNumber().size()!=0){
@@ -146,7 +162,6 @@ public class ChatController {
     @PostMapping("deleteMessage")
     public void updateMessage(@RequestBody List<Long> messagesId){
         for(Long aLong:messagesId){
-            System.out.println(aLong);
             Message forUpdate=chatService.findByIdMessage(aLong);
             for(NestedFile nestedFile:forUpdate.getNestedFileSet()){
                 File file=new File(FileUtil.folderPath +"/"+ nestedFile.getPathImg());
@@ -186,20 +201,18 @@ public class ChatController {
         return imageModelAvatar;
     }
 
-    @PostMapping("userCloseChat/{chatId}")
-    public void test(@PathVariable("chatId") Long chatId){
-        //НАХОДИМ ПРОГРАММНО
-        Long userId=1L;
+    @GetMapping("userCloseChat/{chatId}/{userId}")
+    public void test(@PathVariable("chatId") Long chatId,
+                     @PathVariable("userId") Long userId){
 
         Chat_User chat_user=chatService.getChat(chatId,userId);
         chat_user.setDate(new Date());
         chatService.saveChatUser(chat_user);
     }
 
-    @GetMapping("getDateForUserInChat/{chatId}")
-    public Date getDateForUserInChat(@PathVariable("chatId") Long chatId){
-        //НАХОДИМ ПРОГРАММНО
-        Long userId=1L;
+    @GetMapping("getDateForUserInChat/{chatId}/{userId}")
+    public Date getDateForUserInChat(@PathVariable("chatId") Long chatId,
+                                     @PathVariable("userId") Long userId){
 
         Chat_User chat_user=chatService.getChat(chatId,userId);
         return chat_user.getDate();

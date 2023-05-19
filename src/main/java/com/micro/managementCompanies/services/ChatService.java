@@ -29,15 +29,30 @@ public class ChatService {
     public Chat findById(Long id){
         return chatRepository.findById(id).get();
     }
+
+    //все чаты для определенного user
     public List<Chat> getAllChatForUser(Long id){
         return chatUserRepository.getAllChatForUser(id);
     }
+
+    public Message getLastMessageForChat(Long chatId){
+        if(messageRepository.findFirstByChatIdOrderByDateDesc(chatId).isPresent()){
+            return messageRepository.findFirstByChatIdOrderByDateDesc(chatId).get();
+        }else {
+            return null;
+        }
+    }
+
     public Chat_User getChat(Long idChat,Long idUser){
         return chatUserRepository.getChat(idChat,idUser);
     }
+
+    //сохраняем чат-юзер
     public void saveChatUser(Chat_User chat_user){
         chatUserRepository.save(chat_user);
     }
+
+    //сохраняем сообщение
     public Message saveMessage(Message message){
         return messageRepository.save(message);
     }
@@ -50,4 +65,10 @@ public class ChatService {
         nestedFileRepository.save(nestedFile);
     }
     public void deleteByIdNestedFile(Long id){nestedFileRepository.deleteById(id);}
+
+    //сохраняем чат
+    public Chat saveChat(Chat chat){
+        return chatRepository.save(chat);
+    }
+
 }
