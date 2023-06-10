@@ -30,11 +30,17 @@ public class NewsController {
     }
 
     //создаем новую статью
-    @PostMapping("createNews/{idOfWorker}")
+    @PostMapping("createNews/{idOfWorker}/{idMC}")
     public void createNews(@PathVariable("idOfWorker") Long idOfWorker,
+                           @PathVariable("idMC") Long idMC,
                            @RequestBody NewsDTO newsDTO){
         UserSystem userSystem=userService.findUserById(idOfWorker);
-        ManagementCompany managementCompany=userSystem.getManagementCompany();
+        ManagementCompany managementCompany;
+        if(idMC!=0){
+            managementCompany=managementCompanyService.findManagementCompany(idMC);
+        }else {
+            managementCompany=userSystem.getManagementCompany();
+        }
         News news=new News(newsDTO);
         news.setManagementCompany(managementCompany);
         news.setCreator(userSystem);
@@ -97,9 +103,10 @@ public class NewsController {
     }
 
     //все статьи
-    @GetMapping("getAllNews/{idUser}/{role}")
+    @GetMapping("getAllNews/{idUser}/{role}/{tagId}")
     public List<NewsDTO> getAllNews(@PathVariable("idUser") Long idUser,
-                                    @PathVariable("role") String role){
+                                    @PathVariable("role") String role,
+                                    @PathVariable("tagId") Long tagId){
         UserSystem userSystem=userService.findUserById(idUser);
         List<NewsDTO> newsDTOS=new ArrayList<>();
         List<News> newsForSend=new ArrayList<>();
@@ -111,11 +118,19 @@ public class NewsController {
                 houses.add(house_user.getHouse());
             }
             for (House house : houses){
-                newsForSend.addAll(house.getManagementCompany().getNews());
+                if(tagId==0){
+                    newsForSend.addAll(newsService.findAllByManagementCompanyId(house.getManagementCompany().getId()));
+                }else{
+                    newsForSend.addAll(newsService.findAllForTaggedNews(tagId,house.getManagementCompany().getId()));
+                }
             }
 
         }else {
-            newsForSend=newsService.findAllByManagementCompanyId(userSystem.getManagementCompany().getId());
+            if (tagId==0){
+                newsForSend=newsService.findAllByManagementCompanyId(userSystem.getManagementCompany().getId());
+            }else {
+                newsForSend=newsService.findAllForTaggedNews(tagId,userSystem.getManagementCompany().getId());
+            }
         }
 
         for (News news:newsForSend) {
@@ -137,9 +152,15 @@ public class NewsController {
     }
 
     /*dispatcher*/
-    @GetMapping("getAllNewsCreatedByWorker/{workerId}")
-    public List<NewsDTO> getAllNewsCreatedByWorker(@PathVariable("workerId") Long workerId){
-        List<News> news=newsService.findAllByCreatorId(workerId);
+    @GetMapping("getAllNewsCreatedByWorker/{workerId}/{tagId}")
+    public List<NewsDTO> getAllNewsCreatedByWorker(@PathVariable("workerId") Long workerId,
+                                                   @PathVariable("tagId") Long tagId){
+        List<News> news=new ArrayList<>();
+        if(tagId==0){
+            news=newsService.findAllByCreatorId(workerId);
+        }else {
+            news=newsService.findAllByCreatorIdWithTag(tagId,workerId);
+        }
         List<NewsDTO> newsDTOS=new ArrayList<>();
 
         for (News certainNews : news){
@@ -152,10 +173,18 @@ public class NewsController {
     }
 
     //все статьи
-    @GetMapping("getAllNewsForMC/{idMC}")
-    public List<NewsDTO> getAllNewsForMC(@PathVariable("idMC") Long idMC){
+    @GetMapping("getAllNewsForMC/{idMC}/{tagId}")
+    public List<NewsDTO> getAllNewsForMC(@PathVariable("idMC") Long idMC,
+                                         @PathVariable("tagId") Long tagId){
         List<NewsDTO> newsDTOS=new ArrayList<>();
-        for (News news:managementCompanyService.findManagementCompany(idMC).getNews()) {
+        List<News> newsForSend=new ArrayList<>();
+
+        if(tagId==0){
+            newsForSend=newsService.findAllByManagementCompanyId(idMC);
+        }else {
+            newsForSend=newsService.findAllForTaggedNews(tagId,idMC);
+        }
+        for (News news:newsForSend) {
             NewsDTO newsDTO=new NewsDTO();
             newsDTO.setArgs(news);
             newsDTOS.add(newsDTO);

@@ -81,6 +81,7 @@ public class RequestController {
                                                    @PathVariable("idUser") Long idUser,
                                                    @RequestBody RequestUpdateDTO requestUpdateDTO) throws IOException {
         UserSystem userSystem=userService.findUserById(idUser);
+        Request request=requestService.findById(idOfRequest);
 
         if(userSystem.getRole().getTitle().equals("USER")){
             requestUpdateDTO.setManagementCompanyUpdate(false);
@@ -90,10 +91,12 @@ public class RequestController {
             requestUpdateDTO.setUserUpdate(false);
         }
 
-        Request request=requestService.findById(idOfRequest);
         RequestUpdate requestUpdate=new RequestUpdate();
         if(requestUpdateDTO.getRequestStatusDTO()!=null){
             RequestStatus requestStatus=requestService.findRequestStatus(requestUpdateDTO.getRequestStatusDTO().getId());
+            requestUpdate.setRequestStatus(requestStatus);
+        }else {
+            RequestStatus requestStatus=requestService.findRequestStatus(6L);
             requestUpdate.setRequestStatus(requestStatus);
         }
         if(requestUpdateDTO.getReopenFlag()){
@@ -139,10 +142,12 @@ public class RequestController {
 
     /*dispatcher*/
     //Все заявки по конкретному пользователю
-    @GetMapping("getRequestsForUser/{mode}/{idUser}/{role}")
+    @GetMapping("getRequestsForUser/{mode}/{idUser}/{role}/{idMC}")
     public List<RequestDTO> getRequestsForUser(@PathVariable("mode") String mode,
                                                @PathVariable("idUser") Long idUser,
-                                               @PathVariable("role") String role) throws IOException {
+                                               @PathVariable("role") String role,
+                                               @PathVariable("idMC") Long idMC
+                                               ) throws IOException {
         UserSystem userSystem=userService.findUserById(idUser);
         List<Request> requests=new ArrayList<>();
 
@@ -151,8 +156,11 @@ public class RequestController {
             for (Request_User request_user:userSystem.getRequest_userSet()) {
                 requests.add(request_user.getRequest());
             }
-        }else {
+        }else if(role.equals("DISPATCHER")){
             ManagementCompany managementCompany=userSystem.getManagementCompany();
+            requests=requestService.findAllByManagementCompanyRequest(managementCompany.getId());
+        }else {
+            ManagementCompany managementCompany=managementCompanyService.findManagementCompany(idMC);
             requests=requestService.findAllByManagementCompanyRequest(managementCompany.getId());
         }
 
@@ -218,6 +226,17 @@ public class RequestController {
         RequestDTO requestDTO=new RequestDTO();
         requestDTO.setArgs(request,null,request.getRequestUpdates());
         return requestDTO;
+    }
+
+    //Уведомление
+    @GetMapping("sendEmailAboutRequest/{idOfRequestUpdate}")
+    public void sendEmailAboutRequest(@PathVariable("idOfRequestUpdate") Long idOfRequestUpdate) throws IOException {
+        RequestUpdate requestUpdate=requestService.findRequestUpdate(idOfRequestUpdate);
+        Request request=requestUpdate.getRequest();
+        UserSystem userSystem=requestUpdate.getRequest().getRequest_userSet().get(0).getUserSystem();
+        if(!requestUpdate.getUserUpdate()){
+            userService.informAboutUpdateRequest(userSystem,request,requestUpdate.getCommentary(),request.getManagementCompanyRequest());
+        }
     }
 
 }

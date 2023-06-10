@@ -29,9 +29,10 @@ public class UserSystemDTO {
 
     private ImageModel imgAvatar;
 
-    public void setAllArgs(ImageModel imgAvatar, String name,Long id) {
+    public void setAllArgs(ImageModel imgAvatar, String name,String surname,Long id) {
         this.imgAvatar = imgAvatar;
         this.name = name;
+        this.surname = surname;
         this.id=id;
     }
 

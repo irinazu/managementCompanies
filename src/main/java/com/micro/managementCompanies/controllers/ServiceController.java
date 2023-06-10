@@ -41,6 +41,23 @@ public class ServiceController {
         return null;
     }
 
+    //последние блоки данных по услугам
+    @GetMapping("getLastDataForCounters/{userId}")
+    public List<ServiceDTO> getLastDataForCounters(@PathVariable("userId") Long userId){
+        List<ServiceDTO> serviceDTOS=new ArrayList<>();
+        List<ServiceDescription> serviceDescriptions=serviceService.getAllDescriptionService();
+        for (ServiceDescription serviceDescription: serviceDescriptions) {
+            Service service=serviceService.findLastServiceWihUser(serviceDescription.getId(),userId);
+            if(service!=null){
+                ServiceDTO serviceDTO=new ServiceDTO();
+                serviceDTO.setArgs(service);
+                serviceDTOS.add(serviceDTO);
+            }
+        }
+
+        return serviceDTOS;
+    }
+
     //Сохранение данных об услуге
     @PostMapping("createNewDataForCounter/{userId}")
     public ServiceDTO createNewDataForCounter(@RequestBody Service service,
@@ -49,15 +66,23 @@ public class ServiceController {
         House_User house_user=userService.findUserById(userId).getHouse_userSet().get(0);
         ServiceDescription serviceDescription=serviceService.getCertainDescriptionService(service.getServiceDescription().getId());
         service.setServiceDescription(serviceDescription);
-        service.setTariff(serviceForSave.getTariff());
         service.setMonthNumber(new Date().getMonth());
         service.setYear(service.getYear());
         service.setRepaid(false);
         service.setDutyForThisMonth(service.getConsumption()*service.getTariff());
-        service.setGeneralDutyForService(serviceForSave.getGeneralDutyForService()+service.getDutyForThisMonth());
         service.setDateOfConsumption(new Date());
         service.setUser(userService.findUserById(userId));
         service.setMeteringDevice(serviceService.getLastMeteringDeviceCertainType(serviceDescription.getId(),house_user));
+
+        if(serviceForSave==null){
+            service.setTariff(serviceDescription.getServiceSet().get(0).getTariff());
+            service.setGeneralDutyForService(service.getDutyForThisMonth());
+        }else {
+            service.setTariff(serviceForSave.getTariff());
+            service.setGeneralDutyForService(serviceForSave.getGeneralDutyForService()+service.getDutyForThisMonth());
+
+        }
+
         service=serviceService.saveService(service);
 
         ServiceDTO serviceDTO=new ServiceDTO();
@@ -396,6 +421,13 @@ public class ServiceController {
         for (MeteringDevicesType devicesType : meteringDevicesTypes){
            MeteringDevices meteringDevice=serviceService.getLastMeteringDeviceCertainType(devicesType.getId(),house_user);
            MeteringDevicesDTO meteringDevicesDTO=new MeteringDevicesDTO();
+
+           Service service=serviceService.findLastServiceWihUser(devicesType.getServiceDescription().getId(),userId);
+           if(service!=null){
+               ServiceDTO serviceDTO=new ServiceDTO();
+               serviceDTO.setArgs(service);
+               meteringDevicesDTO.setServiceDTO(serviceDTO);
+           }
 
            if(meteringDevice!=null){
                meteringDevicesDTO.setArgs(meteringDevice);

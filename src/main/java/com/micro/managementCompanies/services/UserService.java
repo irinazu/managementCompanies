@@ -1,6 +1,7 @@
 package com.micro.managementCompanies.services;
 
 import com.micro.managementCompanies.models.*;
+import com.micro.managementCompanies.modelsForSend.RequestDTO;
 import com.micro.managementCompanies.repositories.ChatUserRepository;
 import com.micro.managementCompanies.repositories.HouseUserRepository;
 import com.micro.managementCompanies.repositories.RoleRepository;
@@ -67,6 +68,25 @@ public class UserService {
         }catch (Exception ignored){}
     }
 
+    public void informAboutUpdateRequest(UserSystem userSystem, Request request,String content,ManagementCompany managementCompany){
+        String greeting="<div>Здравствуйте, "+userSystem.getSurname()+" "+userSystem.getName()+" "+userSystem.getPatronymic()+"!</div>";
+        String update="<div>Вы оставляли заявление на портале, "+"\""+request.getTitle()+"\""+". По нему появилось обновление. </div>";
+        String message="<div>Компания "+managementCompany.getTitle()+": "+content+"</div>";
+        String general=greeting+update+message;
+        try {
+            emailMailSender.send(userSystem.getEmail(),"Обновление по заявлению на портале",general);
+        }catch (Exception ignored){}
+    }
+
+    public void informAboutVote(UserSystem userSystem,Voting voting) {
+        String greeting="<div>Здравствуйте, "+userSystem.getSurname()+" "+userSystem.getName()+" "+userSystem.getPatronymic()+"!</div>";
+        String about="<div>Появилось новое голосование "+voting.getTitle()+" от управляющей компании "+voting.getManagementCompanyOwnerVoting().getTitle()+" на тему "+ voting.getVotingTheme().getTitleOfTheme()+"</div>";
+        String description="<div>"+voting.getDescription()+"</div>";
+        String general=greeting+about+description;
+        try {
+            emailMailSender.send(userSystem.getEmail(),"Новое голосование на портале",general);
+        }catch (Exception ignored){}
+    }
     //сообщаем о смене Email
     public void informAboutChangeEmail(String email){
         String message="Была произведена смена Email, данный Email был указан как новый";
@@ -132,5 +152,6 @@ public class UserService {
     public List<Role> getPostsForMC(){
         return roleRepository.findAllByPostForMc(true);
     }
+
 
 }

@@ -6,6 +6,7 @@ import com.micro.managementCompanies.models.UserSystem;
 import com.micro.managementCompanies.modelsForSend.ManagementCompanyDTO;
 import com.micro.managementCompanies.modelsForSend.ManagementCompanyStatusDTO;
 import com.micro.managementCompanies.modelsForSend.UserSystemDTO;
+import com.micro.managementCompanies.services.HouseService;
 import com.micro.managementCompanies.services.ManagementCompanyService;
 import com.micro.managementCompanies.services.UserService;
 import org.springframework.web.bind.annotation.*;
@@ -19,10 +20,12 @@ public class ManagementCompaniesController {
 
     ManagementCompanyService managementCompanyService;
     UserService userService;
+    HouseService houseService;
 
-    public ManagementCompaniesController(ManagementCompanyService managementCompanyService, UserService userService) {
+    public ManagementCompaniesController(ManagementCompanyService managementCompanyService, UserService userService, HouseService houseService) {
         this.managementCompanyService = managementCompanyService;
         this.userService = userService;
+        this.houseService = houseService;
     }
 
     @GetMapping("getAllMC")
@@ -134,4 +137,14 @@ public class ManagementCompaniesController {
         managementCompanyService.saveManagementCompany(managementCompany);
 
     }
+
+
+    //все статусы
+    @GetMapping("getMCByHouse/{idHouse}")
+    public ManagementCompanyDTO getMCByHouse(@PathVariable("idHouse") Long idHouse){
+        ManagementCompanyDTO managementCompany=new ManagementCompanyDTO();
+        managementCompany.setArgs(houseService.findHouseById(idHouse).getManagementCompany());
+        return managementCompany;
+    }
+
 }

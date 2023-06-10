@@ -38,6 +38,8 @@ public class VotingDTO {
     List<HouseForSend> housesMustAdding=new ArrayList<>();
     List<HouseForSend> housesMustDeleting=new ArrayList<>();
 
+    private List<UserSystemDTO> notAnsweredUserSystem=new ArrayList<>();
+
     public void setArgs(Voting voting) {
         this.id = voting.getId();
         this.title = voting.getTitle();

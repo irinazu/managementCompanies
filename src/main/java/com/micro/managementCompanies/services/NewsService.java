@@ -28,7 +28,7 @@ public class NewsService {
     }
 
     public List<News> findAllByManagementCompanyId(Long id){
-        return newsRepository.findAllByManagementCompanyId(id);
+        return newsRepository.findAllByManagementCompanyIdOrderByDateOfPublicationDesc(id);
     }
     public News getCertainNews(Long id){
         return newsRepository.findById(id).get();
@@ -42,7 +42,7 @@ public class NewsService {
 
     //все новости по их создателю
     public List<News> findAllByCreatorId(Long id){
-        return newsRepository.findAllByCreatorId(id);
+        return newsRepository.findAllByCreatorIdOrderByDateOfPublicationDesc(id);
     }
 
     //удаляем tag_news
@@ -68,5 +68,23 @@ public class NewsService {
                 }catch (Exception ignored){}
             }
         }
+    }
+
+    public List<News> findAllForTaggedNews(Long tagId,Long mcId){
+        List<Tag_News> tagNews=tagNewsRepository.findAllByTagIdAndNews_ManagementCompanyIdOrderByNewsDesc(tagId,mcId);
+        List<News> news=new ArrayList<>();
+        for (Tag_News tag_news : tagNews){
+            news.add(tag_news.getNews());
+        }
+        return news;
+    }
+
+    public List<News> findAllByCreatorIdWithTag(Long tagId,Long creatorId){
+        List<Tag_News> tagNews=tagNewsRepository.findAllByTagIdAndNews_CreatorIdOrderByNewsDesc(tagId,creatorId);
+        List<News> news=new ArrayList<>();
+        for (Tag_News tag_news : tagNews){
+            news.add(tag_news.getNews());
+        }
+        return news;
     }
 }

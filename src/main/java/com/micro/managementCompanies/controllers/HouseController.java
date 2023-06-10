@@ -360,9 +360,17 @@ public class HouseController {
     }*/
 
     //дома для УК определенного работника
-    @GetMapping("getHousesForMC/{idUser}")
-    public List<HouseForSend> getHousesForMC(@PathVariable("idUser")Long idUser){
-        ManagementCompany managementCompany=userService.findUserById(idUser).getManagementCompany();
+    @GetMapping("getHousesForMC/{idUser}/{idMC}")
+    public List<HouseForSend> getHousesForMC(@PathVariable("idUser")Long idUser,
+                                             @PathVariable("idMC")Long idMC){
+        UserSystem userSystem=userService.findUserById(idUser);
+        ManagementCompany managementCompany;
+
+        if(userSystem.getRole().getTitle().equals("DISPATCHER")||userSystem.getRole().getTitle().equals("ACCOUNTANT")){
+            managementCompany=userService.findUserById(idUser).getManagementCompany();
+        }else {
+            managementCompany=managementCompanyService.findManagementCompany(idMC);
+        }
         List<House> houses=managementCompany.getHouses();
         List<HouseForSend> houseForSends=new ArrayList<>();
         for (House house:houses) {

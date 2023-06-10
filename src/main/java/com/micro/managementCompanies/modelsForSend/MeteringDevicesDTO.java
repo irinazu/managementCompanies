@@ -23,6 +23,7 @@ public class MeteringDevicesDTO {
     private Date endDate;
     private Date checkDate;
     MeteringDevicesTypeDTO meteringDevicesType=new MeteringDevicesTypeDTO();
+    ServiceDTO serviceDTO=new ServiceDTO();
 
     public void setArgs(MeteringDevices meteringDevices) {
         this.id = meteringDevices.getId();

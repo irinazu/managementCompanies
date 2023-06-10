@@ -9,8 +9,8 @@ import java.util.List;
 @Repository
 public interface NewsRepository extends CrudRepository<News,Long> {
 
-    public List<News> findAllByManagementCompanyId(Long id);
+    public List<News> findAllByManagementCompanyIdOrderByDateOfPublicationDesc(Long id);
 
-    public List<News> findAllByCreatorId(Long id);
+    public List<News> findAllByCreatorIdOrderByDateOfPublicationDesc(Long id);
 
 }

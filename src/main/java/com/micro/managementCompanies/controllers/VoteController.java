@@ -4,6 +4,7 @@ import com.micro.managementCompanies.models.*;
 import com.micro.managementCompanies.modelsForSend.*;
 import com.micro.managementCompanies.repositories.UserHouseRepository;
 import com.micro.managementCompanies.services.HouseService;
+import com.micro.managementCompanies.services.ManagementCompanyService;
 import com.micro.managementCompanies.services.UserService;
 import com.micro.managementCompanies.services.VoteService;
 import org.springframework.web.bind.annotation.*;
@@ -16,11 +17,13 @@ public class VoteController {
     VoteService voteService;
     HouseService houseService;
     UserService userService;
+    ManagementCompanyService managementCompanyService;
 
-    public VoteController(VoteService voteService, HouseService houseService, UserService userService) {
+    public VoteController(VoteService voteService, HouseService houseService, UserService userService, ManagementCompanyService managementCompanyService) {
         this.voteService = voteService;
         this.houseService = houseService;
         this.userService = userService;
+        this.managementCompanyService = managementCompanyService;
     }
 
     @GetMapping("getAllVoteForUser")
@@ -62,16 +65,21 @@ public class VoteController {
     public List<VotingDTO> generateVotingDTO(List<Voting> votingList,Long idUserForCheckImg){
         List<VotingDTO> votingListForSend=new ArrayList<>();
 
+        System.out.println(votingList.get(0).getTitle());
         for(Voting vote:votingList){
             VotingDTO votingDTO=new VotingDTO();
             votingDTO.setArgs(vote);
             Integer sumAllMustAnswer=0;
             Integer answered=0;
 
+            List<UserSystem> allAnsweredUserSystem=new ArrayList<>();
+            List<UserSystemDTO> notAnsweredUserSystem=new ArrayList<>();
 
             for (House house:vote.getHouses()){
                 sumAllMustAnswer+=house.getHouse_userSet().size();
-
+                for (House_User house_user: house.getHouse_userSet()) {
+                    allAnsweredUserSystem.add(house_user.getUserSystem());
+                }
                 HouseForSend houseForSend=new HouseForSend();
                 houseForSend.setAllArgsOnHouse(house);
                 votingDTO.addInHouses(houseForSend);
@@ -98,6 +106,7 @@ public class VoteController {
                         userSystemDTOS.add(userSystemDTO);
                     }
                     votingOptionDTO.setUserSystemDTOS(userSystemDTOS);
+
                 }
                 votingDTO.setAllMustAnswer(sumAllMustAnswer);
                 votingDTO.setAnswered(answered);
@@ -105,6 +114,19 @@ public class VoteController {
                 votingDTO.addInVotingOptionSet(votingOptionDTO);
             }
 
+            List<UserSystemDTO> added=new ArrayList<>();
+            for(VotingOptionDTO votingOptionDTO:votingDTO.getVotingOptionSet()){
+                added.addAll(votingOptionDTO.getUserSystemDTOS());
+            }
+            for (int j=0;j<allAnsweredUserSystem.size();j++){
+                Long userId=allAnsweredUserSystem.get(j).getId();
+                if(!added.stream().anyMatch(x->x.getId()==userId)){
+                    UserSystemDTO userSystemDTO=new UserSystemDTO();
+                    userSystemDTO.setAllArgs(allAnsweredUserSystem.get(j),0);
+                    notAnsweredUserSystem.add(userSystemDTO);
+                }
+            }
+            votingDTO.setNotAnsweredUserSystem(notAnsweredUserSystem);
 
             votingListForSend.add(votingDTO);
         }
@@ -127,24 +149,33 @@ public class VoteController {
     }
 
 
-    @PostMapping("createVoting/{idUser}")
+    @PostMapping("createVoting/{idUser}/{idMC}")
     public void createVoting(@PathVariable("idUser") Long idUser,
+                             @PathVariable("idMC") Long idMC,
                              @RequestBody VotingDTO votingDTO){
         Voting voting=new Voting();
         voting.setArgs(votingDTO);
 
         //находим УК
         UserSystem userSystem=userService.findUserById(idUser);
-        voting.setManagementCompanyOwnerVoting(userSystem.getManagementCompany());
+        if(userSystem.getRole().getTitle().equals("DISPATCHER")){
+            voting.setManagementCompanyOwnerVoting(userSystem.getManagementCompany());
+        }else {
+            voting.setManagementCompanyOwnerVoting(managementCompanyService.findManagementCompany(idMC));
+        }
         //находим тему
         VotingTheme votingTheme=voteService.findTheme(votingDTO.getVotingThemeDTO().getId());
         voting.setVotingTheme(votingTheme);
         //находим дома
+        List<UserSystem> userSystemsForEmail=new ArrayList<>();
         List<House> housesForVoting=new ArrayList<>();
         if(votingDTO.getHouses().size()!=0){
             for (HouseForSend houseForSend:votingDTO.getHouses()) {
                 House house=houseService.findHouseById(houseForSend.getId());
                 housesForVoting.add(house);
+                for (House_User house_user:house.getHouse_userSet()) {
+                    userSystemsForEmail.add(house_user.getUserSystem());
+                }
             }
             voting.setHouses(housesForVoting);
         }
@@ -165,13 +196,22 @@ public class VoteController {
             votingOption.setVoting(voting);
             voteService.saveVotingOption(votingOption);
         }
+
+        for (UserSystem userSystem1:userSystemsForEmail) {
+            if(userSystem1.getEmail()!=null){
+                userService.informAboutVote(userSystem1,voting);
+            }
+        }
+
     }
 
+
     //берем голосования в зависимости от условий
-    @GetMapping("getAllVoteWithMode/{mode}/{idUser}/{role}")
+    @GetMapping("getAllVoteWithMode/{mode}/{idUser}/{role}/{idMC}")
     public List<VotingDTO> getAllVoteForMCWithMode(@PathVariable("mode") String mode,
                                                    @PathVariable("idUser") Long idUser,
-                                                   @PathVariable("role") String role){
+                                                   @PathVariable("role") String role,
+                                                   @PathVariable("idMC") Long idMC){
         List<Voting> votingList=new ArrayList<>();
         List<Voting> votingListWithMode=new ArrayList<>();
         List<VotingDTO> forReturn=new ArrayList<>();
@@ -184,13 +224,18 @@ public class VoteController {
             votingListWithMode=checkMode(votingList,mode);
             forReturn=generateVotingDTO(votingListWithMode,idUser);
 
-        }else {
+        }else if(role.equals("DISPATCHER")){
             UserSystem userSystem=userService.findUserById(idUser);
             ManagementCompany managementCompany=userSystem.getManagementCompany();
             votingList=managementCompany.getVotingList();
             votingListWithMode=checkMode(votingList,mode);
             forReturn=generateVotingDTO(votingListWithMode,null);
 
+        }else {
+            ManagementCompany managementCompany=managementCompanyService.findManagementCompany(idMC);
+            votingList=managementCompany.getVotingList();
+            votingListWithMode=checkMode(votingList,mode);
+            forReturn=generateVotingDTO(votingListWithMode,null);
         }
         return forReturn;
     }
@@ -212,6 +257,24 @@ public class VoteController {
         return votingListWithMode;
     }
 
+    @GetMapping("getCertainVotingForPage/{voteId}/{idUser}")
+    public VotingDTO getCertainVotingForPage(@PathVariable("voteId") Long voteId,
+                                             @PathVariable("idUser") Long idUser){
+
+        List<Voting> votingList=new ArrayList<>();
+        votingList.add(voteService.findVoting(voteId));
+
+        List<VotingDTO> votingDTOS=new ArrayList<>();
+
+        if(userService.findUserById(idUser).getRole().getTitle().equals("USER")){
+            votingDTOS=generateVotingDTO(votingList,idUser);
+        }else {
+            System.out.println(votingList.get(0).getTitle());
+            votingDTOS=generateVotingDTO(votingList,null);
+        }
+
+        return votingDTOS.get(0);
+    }
     @GetMapping("getCertainVoting/{voteId}")
     public VotingDTO getCertainVoting(@PathVariable("voteId") Long voteId){
         Voting voting=voteService.findVoting(voteId);

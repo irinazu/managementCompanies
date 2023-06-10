@@ -87,9 +87,16 @@ public class ChatController {
             UUID id1 = UUID.randomUUID();
             NestedFile nestedFile=new NestedFile();
             nestedFile.setMessage(message);
-            nestedFile.setPathImg(userSystem.getName()+"/"+id1+file.getOriginalFilename());
+            String pathForSave="messages/"+userSystem.getId()+"/"+id1+file.getOriginalFilename();
+
+            File directory=new File(FileUtil.folderPath+"/"+"messages/"+userSystem.getId());
+            if(!directory.exists()){
+                directory.mkdir();
+            }
+
+            nestedFile.setPathImg(pathForSave);
             chatService.saveNestedFile(nestedFile);
-            File file2 = new File(FileUtil.folderPath+"/"+userSystem.getName()+"/"+id1+file.getOriginalFilename());
+            File file2 = new File(FileUtil.folderPath+"/"+pathForSave);
             try (OutputStream os = new FileOutputStream(file2)) {
                 os.write(file.getBytes());
             } catch (FileNotFoundException e) {
@@ -99,7 +106,7 @@ public class ChatController {
             }
 
             try {
-                ImageModel imageModel=getImg(userSystem.getName()+"/"+id1+file.getOriginalFilename());
+                ImageModel imageModel=getImg(pathForSave);
                 imageModel.setId(nestedFile.getId());
                 imageModels.add(imageModel);
             } catch (IOException e) {
@@ -132,7 +139,7 @@ public class ChatController {
                imageModel.setId(nestedFile.getId());
                imageModels.add(imageModel);
            }
-           messageAndUserDTO.setAvg(message.getId(),message.getContent(),message.getDate(),message.getUser_system().getId(),message.getChat().getId(),message.getUser_system().getName(),imageModels);
+           messageAndUserDTO.setAvg(message.getId(),message.getContent(),message.getDate(),message.getUser_system().getId(),message.getChat().getId(),message.getUser_system().getName(),message.getUser_system().getSurname(),imageModels);
            messageAndUserDTOS.add(messageAndUserDTO);
        }
        return messageAndUserDTOS;

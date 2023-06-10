@@ -39,7 +39,7 @@ public class UserSystemController {
         List<UserSystemDTO> userSystemDTOS=new ArrayList<>();
         for (UserSystem user:userService.getUsersForChat(id)) {
             UserSystemDTO userSystemDTO=new UserSystemDTO();
-            userSystemDTO.setAllArgs(getAvatarForCertainUser(user),user.getName(),user.getId());
+            userSystemDTO.setAllArgs(getAvatarForCertainUser(user),user.getName(),user.getSurname(),user.getId());
             userSystemDTOS.add(userSystemDTO);
         }
 
@@ -231,8 +231,8 @@ public class UserSystemController {
 
         }else {
             Chat_User chat_user=new Chat_User();
-            ChatUserKey chatUserKey=new ChatUserKey(userSystem.getId(),house.getChat().getId());
-            chat_user.setArgs(chatUserKey,house.getChat(),userSystem,new Date());
+            ChatUserKey chatUserKey=new ChatUserKey(userSystem.getId(),entrance.getChat().getId());
+            chat_user.setArgs(chatUserKey,entrance.getChat(),userSystem,new Date());
             chatService.saveChatUser(chat_user);
         }
 
